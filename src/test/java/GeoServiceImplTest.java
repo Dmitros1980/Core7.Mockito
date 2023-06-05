@@ -3,59 +3,44 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GeoServiceImplTest {
-    //Здравствуйте!у меня возникла проблемма с ParameterizedTest не понять почему он
-    //не работает причем не первый раз пробую создать? Москито тоже пока не всё понятно.
-    //может для начала подскажете пораметризации.
-    static GeoServiceImpl geoServiceImpl = new GeoServiceImpl();
+    GeoService geoService = new GeoServiceImpl();
+
     @ParameterizedTest
-    @MethodSource("argumenty")
-    public void testLocationByIp(String ip,Location expected){
+    @MethodSource("methodSource")
+    public void testLocationByIp(String ip, Country expected) {
+        GeoService geoService = new GeoServiceImpl();
 
-        Location result=geoServiceImpl.byIp(ip);
+        Country result = geoService.byIp(ip).getCountry();
 
-        Assertions.assertEquals(expected.toString(),result.toString());
+        Assertions.assertEquals(expected, result);
+
     }
+
+    public static Stream<Arguments> methodSource() {
+        return Stream.of(
+                Arguments.of("172.",  Country.RUSSIA),
+                Arguments.of("96.", Country.USA)
+        );
+    }
+
+
     @Test
-    public static  Stream<Object> argumenty(){
+    public void testLocationByCoordinates() {
 
-        return Stream.of("172.0.32.11", new Location("Moscow", Country.RUSSIA, "Lenina", 15));
+        GeoService geoService = new GeoServiceImpl();
+
+        Class<RuntimeException> expected = RuntimeException.class;
+        double longitude=0;
+        double latitude = 0;
+        Assertions.assertThrows(expected, () -> geoService.byCoordinates(latitude, longitude));
     }
-
-
-    @Test
-    public void testByIp1() {
-        String ip = GeoServiceImpl.MOSCOW_IP;
-        Location expected = new Location("Moscow", Country.RUSSIA, "Lenina", 15);
-
-        Location result = geoServiceImpl.byIp(ip);
-
-        Assertions.assertEquals(expected.toString(), result.toString());
-    }
-    @Test
-    public void testByIp2() {
-        String ip = "172.";
-        Location expected = new Location("Moscow", Country.RUSSIA, null, 0);
-
-        Location result = geoServiceImpl.byIp(ip);
-
-        Assertions.assertEquals(expected.toString(), result.toString());
-    }
-    @Test  //выброс ошибки
-    public void testByCoordinates() {
-        double latitude=10;
-        double longitude=10;
-       Class<RuntimeException>expected=RuntimeException.class;
-       //Act
-       // Location resalt=geoServiceImpl.byCoordinates(latitude,longitude);
-
-        Assertions.assertThrows(expected,()->geoServiceImpl.byCoordinates(latitude,longitude));
-
-    }
-
 }
